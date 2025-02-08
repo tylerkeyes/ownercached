@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.5.26", features = ["derive"] }
+bytes = "1.9.0"
+dashmap = "6.1.0"
