@@ -20,6 +20,10 @@ impl StoredValue {
         }
     }
 
+    pub fn set_bytes(&mut self, value: Bytes) {
+        self.value = value;
+    }
+
     pub fn set_flags(&mut self, flags: u16) {
         self.flags = flags;
     }
@@ -35,6 +39,16 @@ impl StoredValue {
     pub fn get_byte_count(&mut self) -> usize {
         self.byte_count
     }
+
+    pub fn response_string(self, key: &str) -> String {
+        format!(
+            "VALUE {} {} {}\r\n{}\r\nEND\r\n",
+            key,
+            self.flags,
+            self.byte_count,
+            std::str::from_utf8(&self.value).unwrap(),
+        )
+    }
 }
 
 #[derive(Default)]
@@ -49,16 +63,13 @@ impl DataStore {
         }
     }
 
-    pub fn get(&mut self, key: String) -> Option<StoredValue> {
-        let store = Arc::clone(&self.store);
-        let value = store.get(&key);
-
-        value.map(|ref_val| ref_val.value().clone())
+    pub fn get(&self, key: String) -> Option<StoredValue> {
+        self.store.get(&key).map(|v| v.clone())
     }
 
-    pub fn set(&mut self, key: String, value: StoredValue) {
-        let store = Arc::clone(&self.store);
-        store.insert(key, value);
+    pub fn set(&self, key: String, value: StoredValue) {
+        // let store = Arc::clone(&self.store);
+        self.store.insert(key, value);
     }
 }
 
@@ -70,7 +81,7 @@ fn data_store_new() {
 
 #[test]
 fn data_store_set() {
-    let mut data_store = DataStore::new();
+    let data_store = DataStore::new();
     let key = String::from("set_test");
     let data = Bytes::from("lets see if this works");
     let value = StoredValue {
@@ -86,7 +97,7 @@ fn data_store_set() {
 
 #[test]
 fn data_store_get() {
-    let mut data_store = DataStore::new();
+    let data_store = DataStore::new();
     let key = String::from("get_test");
     let data = Bytes::from("lets see if this works");
     let value = StoredValue {
@@ -111,7 +122,7 @@ fn data_store_get() {
 
 #[test]
 fn data_store_get_invalid_key() {
-    let mut data_store = DataStore::new();
+    let data_store = DataStore::new();
     let key = String::from("get_test");
     let data = Bytes::from("lets see if this works");
     let value = StoredValue {
@@ -122,7 +133,7 @@ fn data_store_get_invalid_key() {
     };
     data_store.set(key.clone(), value.clone());
 
-    if let Some(get_value) = data_store.get(String::from("not a key")) {
+    if data_store.get(String::from("not a key")).is_some() {
         panic!()
     }
 }
