@@ -6,7 +6,7 @@ use std::sync::Arc;
 pub struct StoredValue {
     value: Bytes,
     flags: u16,
-    exptime: usize,
+    exptime: isize,
     byte_count: usize,
 }
 
@@ -28,7 +28,7 @@ impl StoredValue {
         self.flags = flags;
     }
 
-    pub fn set_exptime(&mut self, exptime: usize) {
+    pub fn set_exptime(&mut self, exptime: isize) {
         self.exptime = exptime;
     }
 

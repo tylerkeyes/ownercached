@@ -1,6 +1,7 @@
 pub mod data;
 
 use bytes::Bytes;
+use chrono::{Duration, Utc};
 use clap::Parser;
 use core::str;
 use data::{DataStore, StoredValue};
@@ -111,7 +112,15 @@ fn set_handler(
     let key = command_items.next().unwrap();
     let mut stored_value = StoredValue::new();
     stored_value.set_flags(command_items.next().unwrap().parse::<u16>().unwrap());
-    stored_value.set_exptime(command_items.next().unwrap().parse::<usize>().unwrap());
+
+    let exptime = command_items.next().unwrap().parse::<isize>().unwrap();
+    let end = match exptime {
+        n if n < 0 => n,
+        0 => 0,
+        _ => (Utc::now() + Duration::seconds(exptime as i64)).timestamp() as isize,
+    };
+    stored_value.set_exptime(end);
+
     stored_value.set_byte_count(command_items.next().unwrap().parse::<usize>().unwrap());
 
     let bytes = stored_value.get_byte_count();
