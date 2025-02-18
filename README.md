@@ -19,14 +19,14 @@ The following commands are supported:
 
 All commands are in the format:
 
-```
+```sh
 <command name> <key> <flags> <exptime> <byte count> [noreply]\r\n
 <data block>\r\n
 ```
 
 The exception is the `get` command, which is in the format:
 
-```
+```sh
 get <key>\r\n
 ```
 
