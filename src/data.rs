@@ -6,7 +6,7 @@ use std::sync::Arc;
 pub struct StoredValue {
     value: Bytes,
     flags: u16,
-    exptime: isize,
+    pub exptime: isize,
     byte_count: usize,
 }
 
@@ -67,9 +67,48 @@ impl DataStore {
         self.store.get(&key).map(|v| v.clone())
     }
 
+    pub fn contains(&self, key: String) -> bool {
+        self.store.contains_key(&key)
+    }
+
     pub fn set(&self, key: String, value: StoredValue) {
-        // let store = Arc::clone(&self.store);
         self.store.insert(key, value);
+    }
+
+    pub fn remove(&self, key: String) {
+        self.store.remove(&key);
+    }
+
+    pub fn iter(&self) -> dashmap::iter::Iter<String, StoredValue> {
+        self.store.iter()
+    }
+
+    pub fn append(&self, key: String, old: StoredValue, new: StoredValue) {
+        let mut combined = Vec::with_capacity(old.value.len() + new.value.len());
+        combined.extend_from_slice(&old.value);
+        combined.extend_from_slice(&new.value);
+
+        let updated = StoredValue {
+            value: Bytes::from(combined),
+            flags: new.flags,
+            exptime: new.exptime,
+            byte_count: old.byte_count + new.byte_count,
+        };
+        self.set(key, updated);
+    }
+
+    pub fn prepend(&self, key: String, old: StoredValue, new: StoredValue) {
+        let mut combined = Vec::with_capacity(old.value.len() + new.value.len());
+        combined.extend_from_slice(&new.value);
+        combined.extend_from_slice(&old.value);
+
+        let updated = StoredValue {
+            value: Bytes::from(combined),
+            flags: new.flags,
+            exptime: new.exptime,
+            byte_count: old.byte_count + new.byte_count,
+        };
+        self.set(key, updated);
     }
 }
 
